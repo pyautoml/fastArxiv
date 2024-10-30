@@ -1,3 +1,6 @@
+# Start
+Use `playground.py` to check how the script works.
+
 # Performance
 
 This is an multithread arXiv wrapper allowing to fetch multiple papers at once and parse them to standarized json files.
