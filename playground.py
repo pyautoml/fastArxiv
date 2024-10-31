@@ -4,13 +4,13 @@ from pyinstrument import Profiler
 
 def main():
     profiler = Profiler()
-    arxiv = Arxiv(max_workers=100)
+    arxiv = Arxiv(logger=True, log_level="DEBUG", max_workers=100)
     profiler.start()
-    arxiv.papers_save(
+    arxiv.get_papers(
         queries=[
-            Query(search_query="Transformers", max_results=100),
-            Query(search_query="Agentic LLM", max_results=100),
-            Query(search_query="LangChain", max_results=100),
+            Query(search_query="Transformers", max_results=5),
+            Query(search_query="Agentic LLM", max_results=5),
+            Query(search_query="LangChain", max_results=5),
         ]
     )
     profiler.stop()
