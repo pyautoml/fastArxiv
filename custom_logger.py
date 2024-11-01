@@ -1,9 +1,24 @@
+"""
+Logging configuration module for arXiv client.
+Provides functions for setting up logging with different levels, formats and handlers.
+"""
+
 import sys
 import logging
+import coloredlogs
 from utils import non_empty_check
 
 
 def set_level(log_level: str):
+    """
+    Convert string log level to logging constant.
+
+    :param log_level: String representation of log level (info, debug, warning, error, exception)
+    :returns: Logging level constant
+    :raises:
+        TypeError: If log_level is not string
+        ValueError: If log_level is empty
+    """
     non_empty_check(variable=log_level, expected_type=str, variable_name="log level")
     log_level = log_level.lower()
 
@@ -22,12 +37,33 @@ def set_level(log_level: str):
 
 
 def null_logger():
+    """
+    Create a logger that suppresses all output.
+
+    :returns: Logger with NullHandler
+    """
     null_logger = logging.getLogger("null_logger")
     null_logger.addHandler(logging.NullHandler())
     return null_logger
 
 
 def setup_logger(name: str, log_level: str = "INFO"):
+    """
+    Configure and return a logger with console output and colored formatting.
+
+    :param name: Name for the logger instance
+    :param log_level: Logging level (info, debug, warning, error, exception)
+    :returns: Configured logger instance
+    :raises:
+        TypeError: If name is not string
+        ValueError: If name is empty
+
+    Features:
+        - Colored output using coloredlogs
+        - Console handler writing to stdout
+        - Formatted output with level, timestamp, file, line number
+        - Prevents duplicate handlers
+    """
     non_empty_check(variable=name, expected_type=str, variable_name="logger name")
     logger = logging.getLogger(name)
     logger.setLevel(set_level(log_level))
@@ -37,7 +73,8 @@ def setup_logger(name: str, log_level: str = "INFO"):
         "%(levelname)s - %(asctime)s - %(filename)s: %(lineno)d - %(message)s"
     )
     console_handler.setFormatter(formatter)
-
+    coloredlogs.install(level="DEBUG")
+    coloredlogs.install(level="DEBUG", logger=logger)
     if not logger.hasHandlers():
         logger.addHandler(console_handler)
     return logger
