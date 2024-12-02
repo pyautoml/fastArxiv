@@ -34,14 +34,14 @@ import os
 import json
 import httpx
 import logging
-from paper_builder import Query
+from .paper_builder import Query
 from concurrent.futures import wait
-from custom_exceptions import PaperGeneralError
+from .custom_exceptions import PaperGeneralError
 from concurrent.futures import ThreadPoolExecutor
-from custom_logger import setup_logger, null_logger
+from .custom_logger import setup_logger, null_logger
 from typing import Any, AsyncGenerator, Dict, Final, Optional, List
 
-from utils import (
+from .utils import (
     clean_text,
     check_path,
     xml_to_dict,
@@ -79,8 +79,9 @@ class Arxiv:
         base_url: Optional[str] = DEFAULT_BASE_URL,
         logger: Optional[bool | logging.Logger] = False,
         max_workers: Optional[int] = DEFAULT_MAX_WORKERS,
-        download_path: Optional[str] = check_path("ArxivPapers"),
+        download_path: Optional[str] = None
     ):
+        # Use the walrus operator to assign and check download_path
         """
         Initialize Arxiv client.
 
@@ -91,9 +92,10 @@ class Arxiv:
         :param download_path: Directory path for saving downloaded papers
         :raises OSError: If download path creation fails
         """
+
         self.client = httpx.Client()
         self.base_url: Final[str] = base_url
-        self.download_path = check_path(download_path)
+        self.download_path = check_path(download_path) if download_path else check_path("ArxivPapers")
         self.log_level = (log_level,)
         self.logger = self.__setup_logger(logger, log_level)
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -195,7 +197,7 @@ class Arxiv:
         if pdf_link:
             item_summary["content"] = clean_text(load_pdf_text(pdf_link))
             save_to_file(
-                self.get(item_summary), item_summary["title"], add_timestamp=overwrite
+                self.get(item_summary), item_summary["title"], add_timestamp=overwrite, path=self.download_path
             )
         else:
             self.logger.warning(
@@ -220,7 +222,7 @@ class Arxiv:
         if "entry" in embedded_data.keys():
             embedded_data = embedded_data.get("entry")
             futures = [
-                self.executor.submit(self.process_item, item, overwrite)
+                self.executor.submit(self.process_item, item)
                 for item in embedded_data
             ]
             done, _ = wait(futures)
