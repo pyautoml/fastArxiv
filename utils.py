@@ -36,7 +36,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, Final, List, Optional
-from custom_exceptions import PDFDownloadError, XMLParsingError
+from .custom_exceptions import PDFDownloadError, XMLParsingError
 
 
 logging.getLogger("httpx").setLevel(logging.ERROR)
@@ -134,15 +134,25 @@ def check_path(path: str = "ArxivPapers") -> Path:
     :raises OSError: If directory creation fails
     """
     try:
-        if not os.path.exists(path):
-            path = posix_path(path)
-            if not os.path.exists(path):
-                path = path = posix_path(DEFAULT_ARXIV_DIR)
-                os.mkdir(path, mode=0o755)
-        else:
-            if "\\" not in path or "/" not in path:
-                return posix_path(path)
-        return path
+        abs_path = os.path.abspath(path)
+        posix_abs_path = posix_path(abs_path)
+
+        if os.path.exists(posix_abs_path):
+            return Path(posix_abs_path)
+
+        try:
+            os.makedirs(posix_abs_path, mode=0o755)
+            return Path(posix_abs_path)
+        except OSError as e:
+            default_path = os.path.join(os.path.dirname(__file__), DEFAULT_ARXIV_DIR)
+            default_posix_path = posix_path(default_path)
+            
+            if os.path.exists(default_posix_path):
+                return Path(default_posix_path)
+                
+            os.makedirs(default_posix_path, mode=0o755)
+            return Path(default_posix_path)
+
     except Exception as e:
         raise OSError(f"Path operation failed: {e}")
 
