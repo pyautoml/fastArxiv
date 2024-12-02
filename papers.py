@@ -34,7 +34,7 @@ import os
 import json
 import httpx
 import logging
-from paper_builer import Query
+from paper_builder import Query
 from concurrent.futures import wait
 from custom_exceptions import PaperGeneralError
 from concurrent.futures import ThreadPoolExecutor
